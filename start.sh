@@ -1,10 +1,15 @@
 #!/bin/sh
+set -e
 
-# 替换配置文件中的 UUID
-sed -i "s/PASTE_YOUR_UUID_HERE/$UUID/g" config.json
+# Replace UUID placeholder
+if [ -n "$UUID" ]; then
+    sed -i "s/PASTE_YOUR_UUID_HERE/$UUID/g" /app/config.json
+fi
 
-# 后台运行 sing-box
-sing-box run -c config.json &
+# Start Cloudflare Tunnel if token provided
+if [ -n "$ARGO_TOKEN" ]; then
+    cloudflared tunnel --no-autoupdate run --token "$ARGO_TOKEN" &
+fi
 
-# 运行 Cloudflare Tunnel
-cloudflared tunnel --no-autoupdate run --token $ARGO_TOKEN
+# Start sing-box
+exec sing-box run -c /app/config.json
